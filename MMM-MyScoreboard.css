@@ -58,10 +58,11 @@
   line-height: 1;
   font-weight: 400;
   font-size: 20px;
+  color: white;
 }
 
 .MMM-MyScoreboard .box-score {
-  min-width: 300px;
+  min-width: 340px;
   height: 70px;
   position: relative;
   text-align: left;
@@ -283,6 +284,12 @@
 .MMM-MyScoreboard .wrapper.highlight-winners .box-score.final.winner-v .score.home {
   color: #777;
 }
+
+.box-score.mediumLogos .score.home.golf_red,
+.MMM-MyScoreboard .wrapper.highlight-winners .box-score.final.golf_red .score.home {
+  color: red;
+}
+
 .MMM-MyScoreboard .wrapper.highlight-winners .box-score.final.winner-v .team-short-code.visitor,
 .MMM-MyScoreboard .wrapper.highlight-winners .box-score.final.winner-v .team-name.visitor {
   color: #EFEFEF;

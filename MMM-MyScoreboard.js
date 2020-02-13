@@ -51,7 +51,7 @@ Module.register("MMM-MyScoreboard",{
     "NCAAF": {provider: "ESPN", logoFormat: "png"},
     "NCAAM": {provider: "ESPN", logoFormat: "png"},
     "NCAAM_MM": {provider: "ESPN",logoFormat: "png"},
-    "GOLF": {provider: "ESPN",logoFormat: "png"},
+    "GOLF": {provider: "ESPN",logoFormat: "url"},
 
     //International Soccer
     "AFC_ASIAN_CUP": {provider: "ESPN", logoFormat: "url", homeTeamFirst: true},
@@ -371,7 +371,7 @@ Module.register("MMM-MyScoreboard",{
 
       var vTeamLogoImg = document.createElement("img");
       if (this.supportedLeagues[league].logoFormat == "url") {
-            vTeamLogoImg.src = gameObj.vTeamLogoUrl;
+          vTeamLogoImg.src = gameObj.vTeamLogoUrl;
       } else {
           if(league == "GOLF") {
             vTeamLogoImg.src = this.file("logos/" + leagueForLogoPath + "/PGA." + this.supportedLeagues[league].logoFormat );
@@ -435,7 +435,7 @@ Module.register("MMM-MyScoreboard",{
       boxScore.appendChild(vsSymbol);
     }
 
-    //add game status
+    //add game status, or golfer names
     var status = document.createElement("div");
     status.classList.add("status");
     gameObj.status.forEach(function(s) {
@@ -450,10 +450,13 @@ Module.register("MMM-MyScoreboard",{
     boxScore.appendChild(status);
 
     //add scores if game in progress or finished
-    if (gameObj.gameMode != this.gameModes.FUTURE) {
+    if ((gameObj.gameMode != this.gameModes.FUTURE) || (league == "GOLF")) {
 
       var hTeamScore = document.createElement("span");
       hTeamScore.classList.add("score", "home");
+      if (gameObj.hScore < 0) {
+	    hTeamScore.classList.add("golf_red");
+      }
       hTeamScore.innerHTML = (gameObj.hScore);
       boxScore.appendChild(hTeamScore);
 
@@ -467,8 +470,11 @@ Module.register("MMM-MyScoreboard",{
     //add classes to final games
     if (gameObj.gameMode == this.gameModes.FINAL) {
       boxScore.classList.add("final");
+      if (gameObj.hScore < 0) {
+	    boxScore.classList.add("golf_red");
+      }
       if (gameObj.hScore > gameObj.vScore) {
-        boxScore.classList.add("winner-h");
+            boxScore.classList.add("winner-h");
       } else if (gameObj.vScore > gameObj.hScore) {
         boxScore.classList.add("winner-v");
       } else {
