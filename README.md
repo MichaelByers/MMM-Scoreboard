@@ -15,20 +15,8 @@ leagues, including:
 * MLS Soccer
 * NCAA College Football (FBS Division)
 * NCAA College Basketball (Division I and March Madness)
-* Over 100 soccer leagues including:
-  * English Premier League
-  * UEFA Champions League
-  * UEFA Europa League
-  * UEFA Nations League
-  * FIFA World Cup
-  * Brazilian Serie A
-  * Bundesliga German League
-  * French Ligue 1
-  * CONMEBOL Libertadores
-  * Italian Serie A
-  * Spanish La Liga
-  * Mexican Liga BBVA Bancomer
-
+* Golf
+* Over 100 soccer leagues
 
 ![Screenshot](/../master/Screen%20Shot.png?raw=true "Screenshot")
 
