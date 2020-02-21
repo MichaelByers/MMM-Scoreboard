@@ -30,7 +30,7 @@ leagues, including:
   * Mexican Liga BBVA Bancomer
 
 
-![Screenshot](/../screenshots/MMM-MyScoreboard-screenshot.png?raw=true "Screenshot")
+![Screenshot](/../Screen%20Shot.png?raw=true "Screenshot")
 
 
 ## Installation
