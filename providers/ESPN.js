@@ -458,7 +458,10 @@ module.exports = {
       			var status = [];
       			var classes = [];
 			var name = competitors[i].athlete.displayName;
-			var score = (competitors[i].statistics[0].displayValue == undefined ? "E" : competitors[i].statistics[0].displayValue);
+			var score = "E";
+			if(competitors[i].statistics.length > 0) {
+			    score = competitors[i].statistics[0].displayValue;
+			}
 			var day = competitors[i].status.period;
 
 			var hole = competitors[i].status.thru;
