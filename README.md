@@ -36,7 +36,7 @@ leagues, including:
 ## Installation
 
 1. Navigate into your MagicMirror `modules` folder and execute<br>
-`git clone https://github.com/jclarke0000/MMM-MyScoreboard`.
+`git clone https://github.com/MichaelByers/MMM-MyScoreboard`.
 2. Enter the new `MMM-MyScoreboard` directory and execute `npm install`.
 
 
@@ -190,6 +190,12 @@ Currently this module supports the following leagues.  Use the bold uppercase sh
 * **NCAAM** - NCAA College Basketball (Division I)
 * **NCAAM_MM** - NCAA College Basketball (March Madness Tournament)
 
+### GOLF
+  * PGA
+  * EUR
+  * LPGA
+  * NTW (Korn Ferry Tour)
+  * SGA (Champions)
 
 ### Soccer Leagues & Competitions
 
@@ -1189,4 +1195,15 @@ Summit League
 Sun Belt
 West Coast
 WAC
+```
+
+### GOLF
+```
+Teams:
+---------------
+PGA   PGA Tour
+EUR   European Tour
+LPGA  LPGA Tour
+NTW   Korn Ferry Tour
+SGA   Champions Tour
 ```
