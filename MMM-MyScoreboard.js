@@ -339,8 +339,6 @@ Module.register("MMM-MyScoreboard",{
 
     //add team logos if applicable
     if (this.viewStyleHasLogos(viewStyle)) {
-      if(league != "GOLF") {
-
         var hTeamLogo = document.createElement("span");
         hTeamLogo.classList.add("logo", "home");
 
@@ -349,12 +347,17 @@ Module.register("MMM-MyScoreboard",{
           //use URL to external logo image
           hTeamLogoImg.src = gameObj.hTeamLogoUrl;
         } else {
-          hTeamLogoImg.src = this.file("logos/" + leagueForLogoPath + "/" + gameObj.hTeam + "." + this.supportedLeagues[league].logoFormat );
+          if(league == "GOLF") {
+            hTeamLogoImg.src = this.file("logos/" + leagueForLogoPath + "/PGA." + this.supportedLeagues[league].logoFormat );
+          } else {
+            hTeamLogoImg.src = this.file("logos/" + leagueForLogoPath + "/" + gameObj.hTeam + "." + this.supportedLeagues[league].logoFormat );
+          }
         }
 
         //End of for Soccer
-        hTeamLogoImg.setAttribute("data-abbr", gameObj.hTeam);
-
+        if(league != "GOLF") { 
+            hTeamLogoImg.setAttribute("data-abbr", gameObj.hTeam);
+        }
         hTeamLogo.appendChild(hTeamLogoImg);
 
         if (this.config.showRankings && this.viewStyleHasRankingOverlay(viewStyle) && gameObj.hTeamRanking) {
@@ -364,7 +367,6 @@ Module.register("MMM-MyScoreboard",{
           hTeamLogo.appendChild(hTeamRakingOverlay);
         }
         boxScore.appendChild(hTeamLogo);
-      }
 
       var vTeamLogo = document.createElement("span");
       vTeamLogo.classList.add("logo", "visitor");
@@ -454,14 +456,14 @@ Module.register("MMM-MyScoreboard",{
 
       var hTeamScore = document.createElement("span");
       hTeamScore.classList.add("score", "home");
-      if (gameObj.hScore < 0) {
-	    hTeamScore.classList.add("golf_red");
-      }
       hTeamScore.innerHTML = (gameObj.hScore);
       boxScore.appendChild(hTeamScore);
 
       var vTeamScore = document.createElement("span");
       vTeamScore.classList.add("score", "visitor");
+      if (gameObj.vScore < 0) {
+            vTeamScore.classList.add("golf_red");
+      }
       vTeamScore.innerHTML = (gameObj.vScore);
       boxScore.appendChild(vTeamScore);
 
@@ -470,9 +472,9 @@ Module.register("MMM-MyScoreboard",{
     //add classes to final games
     if (gameObj.gameMode == this.gameModes.FINAL) {
       boxScore.classList.add("final");
-      if (gameObj.hScore < 0) {
-	    boxScore.classList.add("golf_red");
-      }
+//      if (gameObj.vScore < 0) {
+//	    boxScore.classList.add("golf_red");
+//      }
       if (gameObj.hScore > gameObj.vScore) {
             boxScore.classList.add("winner-h");
       } else if (gameObj.vScore > gameObj.hScore) {
@@ -577,7 +579,7 @@ Module.register("MMM-MyScoreboard",{
       console.log("[MMM-MyScoreboard] Updating Scores");
       this.loaded = true;
       this.sportsData[payload.index] = payload.scores;
-debugger;
+
       this.updateDom();
     }
   },
