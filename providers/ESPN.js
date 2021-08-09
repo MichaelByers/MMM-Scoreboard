@@ -397,7 +397,7 @@ module.exports = {
 
     //golf leaderboard is different url
     if(league == "GOLF") {
-	url = "http://site.api.espn.com/apis/site/v2/sports/golf/leaderboard?league="+teams[0].toLowerCase();
+	    url = "http://site.api.espn.com/apis/site/v2/sports/golf/leaderboard?league="+teams[0].toLowerCase();
     }
 
     /*
@@ -425,19 +425,16 @@ module.exports = {
           if (p_err) {
             console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't parse " + league + " data for provider ESPN: " + p_err );
           } else {
-//            callback(content);
             callback(self.formatScores(league, content, teams));
           }
         });
 
       } else {
-        console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't retrieve " + league + " data for provider ESPN: " + r_err );
-        console.log( "[MMM-MyScoreboard] " + url );
+        console.log( "[MMM-MyScoreboard]  ** ERROR ** Couldn't retrieve " + league + " data for provider ESPN: " + r_err );
+//        console.log( "[MMM-MyScoreboard] " + url );
 
       }
     });
-
-
   },
 
   formatScores: function(league, data, teams) {
@@ -448,70 +445,19 @@ module.exports = {
 
     var filteredGamesList;
     if(league == "GOLF") {
-	if(data.events.length > 0) {
-      	    var eventData = data.events[0].competitions[0];
-	    var competitors = eventData.competitors;
-	    if(competitors.length > 0) {
-		//sort top 10
-		competitors.sort((a,b) => (a.sortOrder - b.sortOrder));	
-		for(var i=0; i<10; i++) {
-      			var status = [];
-      			var classes = [];
-			var name = competitors[i].athlete.displayName;
-			var score = "E";
-			if(competitors[i].statistics.length > 0) {
-			    score = competitors[i].statistics[0].displayValue;
-			}
-			var day = competitors[i].status.period;
-
-			var hole = competitors[i].status.thru;
-			if(hole == "0") { hole = "-";} //not started yet
-			if(hole == "18") {
-			    //final score of the day if available
-			    hole = (competitors[i].linescores == undefined ? "F" : competitors[i].linescores[day-1].value);
-			}
-			var gameState = 0;
-			var headshot;
-			if(typeof competitors[i].athlete.headshot === 'undefined') {
-                                headshot = "http://localhost:8080/modules/MMM-MyScoreboard/logos/GOLF/" + teams + ".png";
-       			} else {
-				headshot = competitors[i].athlete.headshot.href;
-			}
-			// set player state, playing or finished
-      			switch (competitors[i].status.type.id) {
-        			case "1" : //in progress
-					gameState = 1;
-					status.push(competitors[i].status.type.description);
-					break;
-        			case "2" : //complete
-					gameState = 2;
-					status.push(competitors[i].status.type.description);
-					break;
-				default:  //scheduled
-					gameState = 0;
-					status.push(competitors[i].status.type.description);
-					break;
-			}
-
-			formattedGamesList.push({
-        			classes: classes,
-        			gameMode: gameState,
-        			hTeam: name,
-        			vTeam: "",
-        			hTeamLong: name,
-        			vTeamLong: "",
-        			hTeamRanking: null,
-        			vTeamRanking: null,
-        			hScore: score,
-        			vScore: hole,
-        			status: status,
-        			hTeamLogoUrl: "",
-        			vTeamLogoUrl: headshot,
-				name: data.events[0].name
-      			});
-		}
-            }
+	    if(data.events.length > 0) {
+        var eventData = data.events[0].competitions[0];
+	if(typeof eventData.scoringSystem === 'undefined') {
+	  eventData = eventData[0];
+	  console.log( "[MMM-MyScoreboard] "+eventData.scoringSystem.name);
 	}
+        if(eventData.scoringSystem.name != "Medal") {
+          // special event match
+          formattedGamesList = this.formatGolfMatchPlay(eventData, data.events[0].name, teams);
+        } else {
+          formattedGamesList = this.formatGolfStrokePlay(eventData, data.events[0].name, teams);
+        }
+      }
     } else {
     	if (teams != null)  { //filter to teams list
 
@@ -563,23 +509,17 @@ module.exports = {
       	if (aTteam > bTteam) {
             return 1;
       	}
-
       	return 0;
-
     	});
-
 
     	//iterate through games and construct formattedGamesList
     	filteredGamesList.forEach(game => {
 
       		var status = [];
       		var classes = [];
-
       		var gameState = 0;
-
       		var hTeamData = game.competitions[0].competitors[0];
       		var vTeamData = game.competitions[0].competitors[1];
-
       		/*
         		Looks like the home team is always the first in the feed, but it also specified,
         		so we can be sure.
@@ -731,9 +671,149 @@ module.exports = {
     		});
     }
     return formattedGamesList;
+  },
 
+  /*
+    Format special case for match play
+  */
+  formatGolfMatchPlay: function(eventData, eventName, teams) {
+    var competitors = eventData.competitors;
+    var gamesList = new Array();
+    var classes = [];
+    var status = []; 
+    var headshot = [];
+    var name = [];
+    var gameState = competitors[0].status.type.id;
+    status.push(eventData.status.type.description);
+    var score0 = eventData.competitors[0].score.displayValue;
+    var score1 = eventData.competitors[1].score.displayValue;
+    var hole = eventData.competitors[0].status.thru;
+    //not started yet
+    if(hole == "0") { 
+      hole = "-";
+      score = "AS";
+    }
 
+    for(var i=0; i<2; i++) { 
+      for(var j=0; j<2; j++) {
+        if(typeof competitors[i].roster[j].athlete.headshot === 'undefined') {
+          headshot.push("http://localhost:8080/modules/MMM-MyScoreboard/logos/GOLF/" + teams + ".png");	
+        } else {
+          headshot.push(competitors[i].roster[j].athlete.headshot.href);
+        }
+        name.push(competitors[i].roster[j].athlete.lastName);
+      }
+    }
+    
+    gamesList.push({
+      classes: classes,
+      gameMode: gameState,
+      hTeam: name[0],
+      vTeam: name[1],
+      hTeamLong: name[0]+"-"+name[1],
+      vTeamLong: name[1],
+      hTeamRanking: null,
+      vTeamRanking: null,
+      hScore: hole,
+      vScore: score0,
+      status: status,
+      hTeamLogoUrl: headshot[1],
+      vTeamLogoUrl: headshot[0],
+      name: eventName
+    });
+    gamesList.push({
+      classes: classes,
+      gameMode: gameState,
+      hTeam: name[2],
+      vTeam: name[3],
+      hTeamLong: name[2]+"-"+name[3],
+      vTeamLong: name[3],
+      hTeamRanking: null,
+      vTeamRanking: null,
+      hScore: "",
+      vScore: score1,
+      status: status,
+      hTeamLogoUrl: headshot[3],
+      vTeamLogoUrl: headshot[2],
+      name: eventName
+    });
+    return gamesList;
+  },
 
+  /*
+    Format normal stroke play
+  */
+  formatGolfStrokePlay: function(eventData, eventName, teams) {
+    var competitors = eventData.competitors;
+    var gamesList = new Array();
+
+    if(competitors.length > 0) {
+      //sort top 10
+      competitors.sort((a,b) => (a.sortOrder - b.sortOrder));	
+      for(var i=0; i<10; i++) {
+        var status = [];
+        var classes = [];
+        var name = competitors[i].athlete.displayName;
+        var score = "E";
+        if(competitors[i].statistics.length > 0) {
+          score = competitors[i].statistics[0].displayValue;
+        }
+        var day = competitors[i].status.period;
+        if(day > 4) {
+	  day = 5;
+	}
+        var hole = (competitors[i].status.thru == undefined ? competitors[i].status.displayValue : competitors[i].status.thru);
+        //double check for undefined
+        if(typeof hole === 'undefined') {
+          hole = "-";
+        }
+        if((day>1) && ((hole == "0") || (hole == "18") || (hole == "F"))) {
+          //final score of the day if available
+          hole = (competitors[i].linescores == undefined ? "F" : competitors[i].linescores[day-2].value);
+        }
+        else if(hole == "0") { hole = "-";} //not started yet
+        var gameState = 0;
+        var headshot;
+        if(typeof competitors[i].athlete.headshot === 'undefined') {
+          headshot = "http://localhost:8080/modules/MMM-MyScoreboard/logos/GOLF/" + teams + ".png";
+        } else {
+          headshot = competitors[i].athlete.headshot.href;
+        }
+        // set player state, playing or finished
+        switch (competitors[i].status.type.id) {
+          case "1" : //in progress
+            gameState = 1;
+            status.push(competitors[i].status.type.description);
+          break;
+          case "2" : //complete
+            gameState = 2;
+            status.push(competitors[i].status.type.description);
+          break;
+          default:  //scheduled
+            gameState = 0;
+            status.push(competitors[i].status.type.description);
+          break;
+        }
+
+        gamesList.push({
+          classes: classes,
+          gameMode: gameState,
+          hTeam: name,
+          vTeam: "",
+          hTeamLong: name,
+          vTeamLong: "",
+          hTeamRanking: null,
+          vTeamRanking: null,
+          hScore: hole,
+          vScore: score,
+          status: status,
+          hTeamLogoUrl: "",
+          vTeamLogoUrl: headshot,
+          name: eventName
+        });
+      }
+    }
+    return gamesList;
   },
 
   formatT25Ranking: function(rank) {
