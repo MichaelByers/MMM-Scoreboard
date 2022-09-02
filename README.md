@@ -152,6 +152,9 @@ It should be noted that if you specify arrays for both <code>teams</code> and <c
         teams: ["TOR", "MTL", "OTT"]
       },
       {
+        league: "GOLF",
+        teams: ["PGA"]
+      {
         league: "NCAAM_MM",
         label: "March Madness"
       }

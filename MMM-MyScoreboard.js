@@ -43,10 +43,10 @@ Module.register("MMM-MyScoreboard",{
   supportedLeagues: {
     //North American Leagues
     "NBA": {provider: "ESPN", logoFormat: "svg"},
-    "NHL": {provider: "SNET", logoFormat: "svg"},
-    "NFL": {provider: "SNET", logoFormat: "svg"},
+    "NHL": {provider: "ESPN", logoFormat: "svg"},
+    "NFL": {provider: "ESPN", logoFormat: "svg"},
     "CFL": {provider: "SNET", logoFormat: "svg"},
-    "MLB": {provider: "SNET", logoFormat: "svg"},
+    "MLB": {provider: "ESPN", logoFormat: "svg"},
     "MLS": {provider: "SNET", logoFormat: "svg", homeTeamFirst: true},
     "NCAAF": {provider: "ESPN", logoFormat: "png"},
     "NCAAM": {provider: "ESPN", logoFormat: "png"},

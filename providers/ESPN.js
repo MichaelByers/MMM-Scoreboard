@@ -48,6 +48,9 @@ module.exports = {
     "NBA": "basketball/nba",
     "NCAAM": "basketball/mens-college-basketball",
     "NCAAM_MM": "basketball/mens-college-basketball",
+    "MLB": "baseball/mlb",
+    "NFL": "football/nfl",
+    "NHL": "hockey/nhl",
     "GOLF": "golf/pga",
 
     //International Soccer
@@ -552,9 +555,14 @@ module.exports = {
         		case "26": //SOCCER second half
         		case "43": //SOCCER Golden Time
         		case "44": //Shootout
-          			gameState = 1;
-          			status.push(game.status.displayClock);
-          			status.push(this.getPeriod(league, game.status.period));            
+                if(league == "MLB") {
+                  gameState = 1;
+          			  status.push(game.status.type.shortDetail);
+                } else {
+                  gameState = 1;
+          			  status.push(game.status.displayClock);
+          			  status.push(this.getPeriod(league, game.status.period));
+                }            
           			break;
         		case "3": //final
           			gameState = 2;
@@ -747,7 +755,7 @@ module.exports = {
     var competitors = eventData.competitors;
     var gamesList = new Array();
 
-    if(competitors.length > 0) {
+    if(competitors.length > 2) {
       //sort top 10
       competitors.sort((a,b) => (a.sortOrder - b.sortOrder));	
       for(var i=0; i<10; i++) {
@@ -760,8 +768,8 @@ module.exports = {
         }
         var day = competitors[i].status.period;
         if(day > 4) {
-	  day = 5;
-	}
+	        day = 5;
+	      }
         var hole = (competitors[i].status.thru == undefined ? competitors[i].status.displayValue : competitors[i].status.thru);
         //double check for undefined
         if(typeof hole === 'undefined') {
