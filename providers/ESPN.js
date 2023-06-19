@@ -33,9 +33,8 @@
 
 */
 
-const request = require("request");
+var axios = require('axios').default;
 const moment = require("moment-timezone");
-const parseJSON = require("json-parse-async");
 
 module.exports = {
 
@@ -421,23 +420,22 @@ module.exports = {
       url = url + "&groups=100";
     }
 
-    request({url: url, method: "GET"}, function(r_err, response, body) {
+	  axios.get(url)
+		  .then(function (response) {
 
-      if(!r_err && response.statusCode == 200) {
-        parseJSON(body, function(p_err, content) {
-          if (p_err) {
-            console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't parse " + league + " data for provider ESPN: " + p_err );
-          } else {
-            callback(self.formatScores(league, content, teams));
-          }
-        });
+      if(response.status == 200) {
+            callback(self.formatScores(league, response.data, teams));
 
       } else {
-        console.log( "[MMM-MyScoreboard]  ** ERROR ** Couldn't retrieve " + league + " data for provider ESPN: " + r_err );
+        console.log( "[MMM-MyScoreboard]  ** ERROR ** Couldn't retrieve " + league + " data for provider ESPN: " + response.status );
 //        console.log( "[MMM-MyScoreboard] " + url );
 
       }
-    });
+    })
+	  .catch(function (error) {
+		  // handle error
+		  console.log( "[MMM-MyScoreboard] ESPN " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** " + error );
+	});
   },
 
   formatScores: function(league, data, teams) {
@@ -531,7 +529,7 @@ module.exports = {
       		if (hTeamData.homeAway == "away") {
         		hTeamData = game.competitions[0].competitors[1];
         		vTeamData = game.competitions[0].competitors[0];
-      		}      
+      		}
 
       		/*
         		Not all of ESPN's status.type.id's are supported here.
@@ -562,7 +560,7 @@ module.exports = {
                   gameState = 1;
           			  status.push(game.status.displayClock);
           			  status.push(this.getPeriod(league, game.status.period));
-                }            
+                }
           			break;
         		case "3": //final
           			gameState = 2;
@@ -613,12 +611,12 @@ module.exports = {
         		case "45": //SOCCER Final ET
         		case "46": //SOCCER final score - after golden goal
           			gameState = 2;
-          			status.push("Full Time (ET)"); 
-          			break;         
+          			status.push("Full Time (ET)");
+          			break;
         		case "47": //Soccer Final PK
           			gameState = 2;
-          			status.push("Full Time (PK) " + this.getFinalPK(hTeamData,vTeamData)); 
-          			break;         
+          			status.push("Full Time (PK) " + this.getFinalPK(hTeamData,vTeamData));
+          			break;
         		default: //Anything else, treat like a game that hasn't started yet
           			gameState = 0;
           			status.push(moment(game.competitions[0].date).tz(localTZ).format("h:mm a"));
@@ -688,7 +686,7 @@ module.exports = {
     var competitors = eventData.competitors;
     var gamesList = new Array();
     var classes = [];
-    var status = []; 
+    var status = [];
     var headshot = [];
     var name = [];
     var gameState = competitors[0].status.type.id;
@@ -697,22 +695,22 @@ module.exports = {
     var score1 = eventData.competitors[1].score.displayValue;
     var hole = eventData.competitors[0].status.thru;
     //not started yet
-    if(hole == "0") { 
+    if(hole == "0") {
       hole = "-";
       score = "AS";
     }
 
-    for(var i=0; i<2; i++) { 
+    for(var i=0; i<2; i++) {
       for(var j=0; j<2; j++) {
         if(typeof competitors[i].roster[j].athlete.headshot === 'undefined') {
-          headshot.push("http://localhost:8080/modules/MMM-MyScoreboard/logos/GOLF/" + teams + ".png");	
+          headshot.push("http://localhost:8080/modules/MMM-MyScoreboard/logos/GOLF/" + teams + ".png");
         } else {
           headshot.push(competitors[i].roster[j].athlete.headshot.href);
         }
         name.push(competitors[i].roster[j].athlete.lastName);
       }
     }
-    
+
     gamesList.push({
       classes: classes,
       gameMode: gameState,
@@ -757,7 +755,7 @@ module.exports = {
 
     if(competitors.length > 2) {
       //sort top 10
-      competitors.sort((a,b) => (a.sortOrder - b.sortOrder));	
+      competitors.sort((a,b) => (a.sortOrder - b.sortOrder));
       for(var i=0; i<10; i++) {
         var status = [];
         var classes = [];
@@ -858,15 +856,16 @@ module.exports = {
       if (p > 2) {
         return "ET";
       } else {
-        return ""; //no need to indicate first or second half        
+        return ""; //no need to indicate first or second half
       }
-
+    } else if(league == "MLB") {
+      return p;
     } else {
       if (p == 5) {
         return "OT";
       } else if (p > 5) {
         return (p - 4) + "OT";
-      }      
+      }
     }
 
     return this.getOrdinal(p);
@@ -876,7 +875,13 @@ module.exports = {
   getFinalOT: function(league, p) {
 
     if (this.isSoccer(league) && p > 2) {
-      return " (ET)";    
+      return " (ET)";
+    } else if(league == "MLB") {
+      if (p>9) {
+        return " ("+p+")";
+      } else {
+        return "";
+      }
     } else if (!this.isSoccer(league)) {
       if (p == 5) {
         return " (OT)";

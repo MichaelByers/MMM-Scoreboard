@@ -43,9 +43,8 @@
 
 */
 
-const request = require("request");
+var axios = require('axios').default;
 const moment = require("moment-timezone");
-const parseJSON = require("json-parse-async");
 
 module.exports = {
 
@@ -66,7 +65,7 @@ module.exports = {
   gameDate: null,
 
   getScores: function(league, teams, gameDate, callback) {
-    
+
     var self = this;
     this.gameDate = moment(gameDate);
 
@@ -76,7 +75,7 @@ module.exports = {
       if (!this.dataPollStarted) {
         this.startDataPoll();
       }
-      
+
       var waitForDataTimer = setInterval(function() {
         if (self.scoresObj != null) {
 
@@ -111,23 +110,21 @@ module.exports = {
 
     var url = "https://mobile-statsv2.sportsnet.ca/ticker?day=" + this.gameDate.format("YYYY-MM-DD");
 
-    request({url: url, method: "GET"}, function(r_err, response, body) {
+	axios.get(url)
+		.then(function (response) {
 
-      if(!r_err && response.statusCode == 200) {
-        
-        parseJSON(body, function(p_err, content) {
-          if (p_err) {
-            console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't parse data for provider SNET: " + p_err );       
-          } else if (content.data) {
-            self.scoresObj = content;
-          }
-        });
-
+      if(response.status == 200) {
+           self.scoresObj = response.data;
       } else {
-        console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't retrieve data for provider SNET: " + r_err );       
+        console.log( "[MMM-MyScoreboard] " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** Couldn't retrieve data for provider SNET: " + response.status );
       }
 
-    });
+    })
+	.catch(function (error) {
+		// handle error
+		console.log( "[MMM-MyScoreboard] SNET " + moment().format("D-MMM-YY HH:mm") + " ** ERROR ** " + error );
+	});
+
   },
 
 
@@ -214,13 +211,13 @@ module.exports = {
               if (game.shootout == true) {
                 status.push("SHOOTOUT");
               } else if (game.overtime == true) {
-                status.push(game.clock);          
+                status.push(game.clock);
                 status.push("OT");
               } else if (game.clock == "0:00") {
                 status.push("END");
                 status.push(self.getPeriod(league, game.period));
               } else {
-                status.push(game.clock);          
+                status.push(game.clock);
                 status.push(self.getPeriod(league, game.period));
               }
               break;
@@ -240,7 +237,7 @@ module.exports = {
               if (game.clock == "Half") {
                 status.push("HALFTIME");
               } else {
-                status.push(game.clock);                
+                status.push(game.clock);
               }
               break;
 
@@ -267,7 +264,7 @@ module.exports = {
                 status.push(self.getPeriod(league, game.period));
               } else {
                 status.push(game.clock);
-                status.push(self.getPeriod(league, game.period));             
+                status.push(self.getPeriod(league, game.period));
               }
               break;
 
@@ -352,14 +349,14 @@ module.exports = {
       case "NBA":
         if (game.period > 4) {
           return " (OT)";
-        } 
+        }
         break;
       case "MLS":
         if (game.period > 2) {
           return " (ET)";
-        } 
+        }
         break;
-    } 
+    }
     return "";
   },
 
@@ -415,7 +412,7 @@ module.exports = {
 
     if (str == null || str == undefined) {
       return "";
-    } 
+    }
 
     var splitStr = str.toLowerCase().split(" ");
     for (var i = 0; i < splitStr.length; i++) {
@@ -423,11 +420,11 @@ module.exports = {
       if (splitStr[i].length <= 2) {
         splitStr[i] = splitStr[i].toUpperCase();
       } else {
-        splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);           
+        splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
       }
     }
     // Directly return the joined string
-    return splitStr.join(" "); 
+    return splitStr.join(" ");
   }
 
 
